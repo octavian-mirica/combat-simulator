@@ -67,6 +67,7 @@ function downloadSample() {
   const url = 'https://raw.githubusercontent.com/octavian-mirica/combat-simulator/main/data-sample.json'; // Replace with your actual URL
   const link = document.createElement('a');
   link.href = url;
+  link.target = '_blank';
   link.download = 'sample-players.json';
   document.body.appendChild(link);
   link.click();
@@ -181,6 +182,7 @@ function downloadSample() {
 </script>
 </body>
 </html>
+
 
 
 
