@@ -1,6 +1,7 @@
 {
   "player1": {
     "damage": 100,
+    "basespeed": 0.56,
     "speed": 10,
     "double": 100,
     "crit": 54,
@@ -13,6 +14,7 @@
   },
   "player2": {
     "damage": 100,
+    "basespeed": 0.56,
     "speed": 10,
     "double": 100,
     "crit": 54,
@@ -24,3 +26,4 @@
     "hmult": 500
   }
 }
+
