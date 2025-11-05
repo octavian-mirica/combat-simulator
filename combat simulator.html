@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Combat DPS Simulator</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #f4f4f4; }
+    h2 { margin-top: 40px; }
+    .player { background: #fff; padding: 15px; margin-bottom: 20px; border-radius: 8px; }
+    label { display: block; margin: 5px 0 2px; }
+    input[type="number"], input[type="file"] { width: 120px; margin-bottom: 10px; }
+    button { margin-top: 20px; padding: 10px 20px; }
+    #result { margin-top: 30px; font-weight: bold; }
+    .stats { margin-top: 10px; font-style: italic; }
+  </style>
+</head>
+
+<body>
+  <h1>⚔️ Combat DPS Simulator (by Fitz using Copilot)</h1>
+
+  <h2>📁 Upload Player Stats</h2>
+  <input type="file" id="uploadJson" accept=".json" onchange="loadJson(this)" />
+
+  <div class="player">
+    <h2>Player 1</h2>
+    <div id="p1">
+      <label>Base Damage: <input type="number" id="p1_damage" value="100" /></label>
+      <label>Base Speed (hits/sec): <input type="number" id="p1_basespeed" value="1" step="0.01" /></label>
+      <label>Attack Speed (%): <input type="number" id="p1_speed" value="0" /></label>
+      <label>Double Chance (%): <input type="number" id="p1_double" value="0" /></label>
+      <label>Crit Chance (%): <input type="number" id="p1_crit" value="0" /></label>
+      <label>Crit Damage (%): <input type="number" id="p1_critdmg" value="150" /></label>
+      <label>Lifesteal (%): <input type="number" id="p1_lifesteal" value="0" /></label>
+      <label>Health Regen (%/sec): <input type="number" id="p1_regen" value="0" /></label>
+      <label>Block Chance (%): <input type="number" id="p1_block" value="0" /></label>
+      <label>Health: <input type="number" id="p1_health" value="1000" /></label>
+      <label>Health Multiplier (%): <input type="number" id="p1_hmult" value="100" /></label>
+    </div>
+    <div class="stats" id="p1_stats"></div>
+  </div>
+
+  <div class="player">
+    <h2>Player 2</h2>
+    <div id="p2">
+      <label>Base Damage: <input type="number" id="p2_damage" value="100" /></label>
+      <label>Base Speed (hits/sec): <input type="number" id="p2_basespeed" value="1" step="0.01" /></label>
+      <label>Attack Speed (%): <input type="number" id="p2_speed" value="0" /></label>
+      <label>Double Chance (%): <input type="number" id="p2_double" value="0" /></label>
+      <label>Crit Chance (%): <input type="number" id="p2_crit" value="0" /></label>
+      <label>Crit Damage (%): <input type="number" id="p2_critdmg" value="150" /></label>
+      <label>Lifesteal (%): <input type="number" id="p2_lifesteal" value="0" /></label>
+      <label>Health Regen (%/sec): <input type="number" id="p2_regen" value="0" /></label>
+      <label>Block Chance (%): <input type="number" id="p2_block" value="0" /></label>
+      <label>Health: <input type="number" id="p2_health" value="1000" /></label>
+      <label>Health Multiplier (%): <input type="number" id="p2_hmult" value="100" /></label>
+    </div>
+    <div class="stats" id="p2_stats"></div>
+  </div>
+
+  <button onclick="simulate()">Simulate Fight</button>
+  <div id="result"></div>
+
+<script>
+  function formatNumber(num) {
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(2) + 'M';
+    if (num >= 1_000) return (num / 1_000).toFixed(2) + 'K';
+    return num.toFixed(2);
+  }
+
+  function getStats(prefix) {
+    const baseHealth = +document.getElementById(prefix + '_health').value;
+    const healthMultiplier = +document.getElementById(prefix + '_hmult').value / 100;
+    return {
+      damage: +document.getElementById(prefix + '_damage').value,
+      basespeed: +document.getElementById(prefix + '_basespeed').value,
+      speed: +document.getElementById(prefix + '_speed').value / 100,
+      double: +document.getElementById(prefix + '_double').value / 100,
+      crit: +document.getElementById(prefix + '_crit').value / 100,
+      critdmg: +document.getElementById(prefix + '_critdmg').value / 100,
+      lifesteal: +document.getElementById(prefix + '_lifesteal').value / 100,
+      regen: +document.getElementById(prefix + '_regen').value / 100,
+      block: +document.getElementById(prefix + '_block').value / 100,
+      baseHealth: baseHealth,
+      totalHealth: baseHealth * healthMultiplier
+    };
+  }
+
+  function computeDPS(p) {
+    const ed = p.damage * (
+      (1 - p.double) * (1 - p.crit) +
+      2 * p.double * (1 - p.crit) +
+      p.critdmg * (1 - p.double) * p.crit +
+      2 * p.critdmg * p.double * p.crit
+    );
+    return ed * p.basespeed * (1 + p.speed);
+  }
+
+  function computeSustain(p, dps) {
+    return dps * p.lifesteal + p.baseHealth * p.regen;
+  }
+
+  function computeTTD(player, enemy) {
+    const playerDPS = computeDPS(player);
+    const enemyDPS = computeDPS(enemy);
+    const sustain = computeSustain(player, playerDPS);
+    const incoming = enemyDPS * (1 - player.block);
+    return incoming <= sustain ? Infinity : player.totalHealth / (incoming - sustain);
+  }
+
+  function simulate() {
+    const p1 = getStats('p1');
+    const p2 = getStats('p2');
+
+    const dps1 = computeDPS(p1);
+    const dps2 = computeDPS(p2);
+    const sustain1 = computeSustain(p1, dps1);
+    const sustain2 = computeSustain(p2, dps2);
+
+    const ttd1 = computeTTD(p1, p2);
+    const ttd2 = computeTTD(p2, p1);
+
+    document.getElementById('p1_stats').innerHTML = `DPS: ${formatNumber(dps1)} | Sustain: ${formatNumber(sustain1)}/sec`;
+    document.getElementById('p2_stats').innerHTML = `DPS: ${formatNumber(dps2)} | Sustain: ${formatNumber(sustain2)}/sec`;
+
+    let result = `Player 1 TTD: ${ttd1.toFixed(2)}s<br>Player 2 TTD: ${ttd2.toFixed(2)}s<br><br>`;
+    if (ttd1 === Infinity && ttd2 === Infinity) {
+      result += "⚖️ It's a stalemate!";
+    } else if (ttd1 > ttd2) {
+      result += "🏆 Player 1 would win!";
+    } else if (ttd2 > ttd1) {
+      result += "🏆 Player 2 would win!";
+    } else {
+      result += "🤜🤛 It's a tie!";
+    }
+
+    document.getElementById('result').innerHTML = result;
+  }
+
+  function loadJson(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      try {
+        const data = JSON.parse(e.target.result);
+        fillPlayerInputs('p1', data.player1);
+        fillPlayerInputs('p2', data.player2);
+        simulate();
+      } catch (err) {
+        alert("Invalid JSON file format.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function fillPlayerInputs(prefix, stats) {
+    document.getElementById(`${prefix}_damage`).value = stats.damage;
+    document.getElementById(`${prefix}_basespeed`).value = stats.basespeed;
+    document.getElementById(`${prefix}_speed`).value = stats.speed;
+    document.getElementById(`${prefix}_double`).value = stats.double;
+    document.getElementById(`${prefix}_crit`).value = stats.crit;
+    document.getElementById(`${prefix}_critdmg`).value = stats.critdmg;
+    document.getElementById(`${prefix}_lifesteal`).value = stats.lifesteal;
+    document.getElementById(`${prefix}_regen`).value = stats.regen;
+    document.getElementById(`${prefix}_block`).value = stats.block;
+    document.getElementById(`${prefix}_health`).value = stats.health;
+    document.getElementById(`${prefix}_hmult`).value = stats.hmult;
+  }
+</script>
+</body>
+</html>
