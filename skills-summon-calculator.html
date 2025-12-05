@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Skills Summon Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0f1221;
+        --panel: #171a2e;
+        --accent: #5ad0ff;
+        --text: #e7e9ff;
+        --muted: #aab0d3;
+        --good: #45c269;
+        --warn: #ffb84d;
+      }
+      body {
+        margin: 0;
+        padding: 24px;
+        background: var(--bg);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          "Helvetica Neue", Arial;
+      }
+      h1 {
+        font-size: 1.6rem;
+        margin: 0 0 12px;
+      }
+      .card {
+        background: var(--panel);
+        border: 1px solid #262a4a;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25);
+        max-width: 980px;
+        margin: 0 auto;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid #2a2f52;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      label {
+        font-weight: 600;
+        color: var(--muted);
+      }
+      .sub {
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+      input[type="number"] {
+        padding: 6px;
+        border-radius: 6px;
+        border: 1px solid #31365f;
+        background: #0f1330;
+        color: var(--text);
+        width: 100px;
+      }
+      input[type="number"]:focus {
+        outline: 2px solid var(--accent);
+      }
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+      .btn {
+        background: var(--accent);
+        color: #081326;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 14px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .results {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .stat {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid #2a2f52;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .stat h3 {
+        margin: 0 0 8px;
+        font-size: 1rem;
+        color: var(--muted);
+      }
+      .value {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: var(--good);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        border: 1px solid #2a2f52;
+      }
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #2a2f52;
+      }
+      th {
+        background: #101536;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .note {
+        margin-top: 12px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+      .foot {
+        margin-top: 18px;
+        font-size: 0.9rem;
+        color: var(--warn);
+      }
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .results {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #171a2e;
+        border-bottom: 1px solid #2a2f52;
+        padding: 12px 20px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+      }
+      .title-block {
+        display: flex;
+        flex-direction: column;
+      }
+      .topbar .title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #5ad0ff;
+      }
+      .topbar .subtitle {
+        font-size: 0.9rem;
+        color: #aab0d3;
+        margin-top: 2px;
+      }
+      .topbar .back-btn {
+        background: #5ad0ff;
+        color: #081326;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 8px 14px;
+        border-radius: 6px;
+        transition: background 0.2s, transform 0.2s;
+      }
+      .topbar .back-btn:hover {
+        background: #3bb8e0;
+        transform: translateY(-2px);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="topbar">
+        <div class="title-block">
+          <div class="title">Skills Summon Calculator</div>
+          <div class="subtitle">
+            Summons 5 skills per draw. Upgrading requires 12 skills of the same
+            rarity.
+          </div>
+        </div>
+        <a href="index.html" class="back-btn">⬅ Home</a>
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="keysToUse">Total tokens available</label>
+          <input id="keysToUse" type="number" min="0" step="1" value="120" />
+        </div>
+        <div class="field">
+          <label for="summonCost">Summoning cost (tokens per draw)</label>
+          <input id="summonCost" type="number" min="1" step="1" value="2" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top: 12px">
+        <button class="btn" id="calcBtn">Calculate</button>
+        <span class="muted" id="validation"></span>
+      </div>
+
+      <div class="results" id="results">
+        <div class="stat">
+          <h3>Expected totals</h3>
+          <div class="value" id="totalPoints">0</div>
+          <div class="sub" id="drawsSummary"></div>
+          <div class="sub" id="skillsSummary"></div>
+          <div class="sub" id="keysSummary"></div>
+          <div class="sub" id="updateSummary"></div>
+        </div>
+
+        <div class="stat">
+          <h3>Expected skills by rarity</h3>
+          <table id="byRarity">
+            <thead>
+              <tr>
+                <th>Rarity</th>
+                <th>Drop chance (%)</th>
+                <th>Points</th>
+                <th>Expected count</th>
+                <th>Points from summons</th>
+                <th>Points from updates</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Common</td>
+                <td>
+                  <input
+                    id="chanceCommon"
+                    type="number"
+                    step="0.1"
+                    value="17.5"
+                  />
+                </td>
+                <td>50</td>
+                <td id="countCommon">0</td>
+                <td id="pointsCommon">0</td>
+                <td id="updateCommon">0</td>
+              </tr>
+              <tr>
+                <td>Rare</td>
+                <td>
+                  <input
+                    id="chanceRare"
+                    type="number"
+                    step="0.1"
+                    value="16.5"
+                  />
+                </td>
+                <td>75</td>
+                <td id="countRare">0</td>
+                <td id="pointsRare">0</td>
+                <td id="updateRare">0</td>
+              </tr>
+              <tr>
+                <td>Epic</td>
+                <td>
+                  <input
+                    id="chanceEpic"
+                    type="number"
+                    step="0.1"
+                    value="16.5"
+                  />
+                </td>
+                <td>100</td>
+                <td id="countEpic">0</td>
+                <td id="pointsEpic">0</td>
+                <td id="updateEpic">0</td>
+              </tr>
+              <tr>
+                <td>Legendary</td>
+                <td>
+                  <input
+                    id="chanceLegendary"
+                    type="number"
+                    step="0.1"
+                    value="16.5"
+                  />
+                </td>
+                <td>125</td>
+                <td id="countLegendary">0</td>
+                <td id="pointsLegendary">0</td>
+                <td id="updateLegendary">0</td>
+              </tr>
+              <tr>
+                <td>Ultimate</td>
+                <td>
+                  <input
+                    id="chanceUltimate"
+                    type="number"
+                    step="0.1"
+                    value="29.2"
+                  />
+                </td>
+                <td>150</td>
+                <td id="countUltimate">0</td>
+                <td id="pointsUltimate">0</td>
+                <td id="updateUltimate">0</td>
+              </tr>
+              <tr>
+                <td>Mythic</td>
+                <td>
+                  <input
+                    id="chanceMythic"
+                    type="number"
+                    step="0.1"
+                    value="3.80"
+                  />
+                </td>
+                <td>175</td>
+                <td id="countMythic">0</td>
+                <td id="pointsMythic">0</td>
+                <td id="updateMythic">0</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th>Total</th>
+                <th id="totalChance">100%</th>
+                <th>—</th>
+                <th id="totalSkillsCell">0</th>
+                <th id="totalPointsCell">0</th>
+                <th id="totalUpdatePointsCell">0</th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <p class="note">
+        Drop chances should sum to 100% for accurate results. Updates require 12
+        skills of the same rarity.
+      </p>
+      <p class="foot" id="footNote"></p>
+    </div>
+    <script>
+      const rarities = [
+        {
+          name: "Common",
+          points: 50,
+          chanceId: "chanceCommon",
+          countId: "countCommon",
+          pointsId: "pointsCommon",
+          updateId: "updateCommon",
+        },
+        {
+          name: "Rare",
+          points: 75,
+          chanceId: "chanceRare",
+          countId: "countRare",
+          pointsId: "pointsRare",
+          updateId: "updateRare",
+        },
+        {
+          name: "Epic",
+          points: 100,
+          chanceId: "chanceEpic",
+          countId: "countEpic",
+          pointsId: "pointsEpic",
+          updateId: "updateEpic",
+        },
+        {
+          name: "Legendary",
+          points: 125,
+          chanceId: "chanceLegendary",
+          countId: "countLegendary",
+          pointsId: "pointsLegendary",
+          updateId: "updateLegendary",
+        },
+        {
+          name: "Ultimate",
+          points: 150,
+          chanceId: "chanceUltimate",
+          countId: "countUltimate",
+          pointsId: "pointsUltimate",
+          updateId: "updateUltimate",
+        },
+        {
+          name: "Mythic",
+          points: 175,
+          chanceId: "chanceMythic",
+          countId: "countMythic",
+          pointsId: "pointsMythic",
+          updateId: "updateMythic",
+        },
+      ];
+
+      function getNumber(id) {
+        const v = Number(document.getElementById(id).value);
+        return isNaN(v) ? 0 : v;
+      }
+
+      function readChances() {
+        return rarities.map((r) => ({
+          ...r,
+          chancePct: getNumber(r.chanceId),
+        }));
+      }
+
+      function formatInt(n) {
+        return Math.round(n).toLocaleString(undefined);
+      }
+      function formatFloat(n, d = 2) {
+        return Number(n).toLocaleString(undefined, {
+          minimumFractionDigits: d,
+          maximumFractionDigits: d,
+        });
+      }
+
+      function validate(keysToUse, summonCost) {
+        const messages = [];
+        if (isNaN(keysToUse) || keysToUse < 0)
+          messages.push("Tokens must be 0 or more.");
+        if (isNaN(summonCost) || summonCost <= 0)
+          messages.push("Summoning cost must be 1 or more.");
+        return messages;
+      }
+
+      function calculate() {
+        const keysToUse = getNumber("keysToUse");
+        const summonCost = getNumber("summonCost");
+
+        const validation = validate(keysToUse, summonCost);
+        const valEl = document.getElementById("validation");
+        if (validation.length) {
+          valEl.textContent = validation.join(" ");
+          document.getElementById("results").style.display = "none";
+          document.getElementById("footNote").textContent = "";
+          return;
+        } else {
+          valEl.textContent = "";
+        }
+
+        const rars = readChances();
+        const totalChance = rars.reduce((s, r) => s + r.chancePct, 0);
+        document.getElementById("totalChance").textContent = `${formatFloat(
+          totalChance,
+          1
+        )}%`;
+
+        const draws = Math.floor(keysToUse / summonCost);
+        const leftoverKeys = keysToUse % summonCost;
+        const skillsPerDraw = 5;
+        const expectedSkillsTotal = draws * skillsPerDraw;
+
+        let sumPoints = 0;
+        let sumUpdatePoints = 0;
+
+        rars.forEach((r) => {
+          const expCount = expectedSkillsTotal * (r.chancePct / 100);
+          const summonPoints = expCount * r.points;
+          const updates = Math.floor(expCount / 12);
+          const updatePoints = updates * r.points;
+
+          sumPoints += summonPoints;
+          sumUpdatePoints += updatePoints;
+
+          document.getElementById(r.countId).textContent = formatFloat(
+            expCount,
+            2
+          );
+          document.getElementById(r.pointsId).textContent =
+            formatInt(summonPoints);
+          document.getElementById(r.updateId).textContent =
+            formatInt(updatePoints);
+        });
+
+        document.getElementById("totalSkillsCell").textContent = formatFloat(
+          expectedSkillsTotal,
+          2
+        );
+        document.getElementById("totalPointsCell").textContent =
+          formatInt(sumPoints);
+        document.getElementById("totalUpdatePointsCell").textContent =
+          formatInt(sumUpdatePoints);
+
+        document.getElementById("totalPoints").textContent = formatInt(
+          sumPoints + sumUpdatePoints
+        );
+        document.getElementById(
+          "drawsSummary"
+        ).textContent = `Usable draws: ${draws} (cost ${summonCost} tokens each)`;
+        document.getElementById(
+          "skillsSummary"
+        ).textContent = `Expected skills: ${formatFloat(
+          expectedSkillsTotal,
+          2
+        )} (5 per draw)`;
+        document.getElementById("keysSummary").textContent = `Tokens used: ${
+          draws * summonCost
+        } · Unused keys: ${leftoverKeys}`;
+        document.getElementById(
+          "updateSummary"
+        ).textContent = `Extra points from upgrades: ${formatInt(
+          sumUpdatePoints
+        )}`;
+
+        document.getElementById(
+          "footNote"
+        ).textContent = `Quick math: draws = floor(keys / cost) → floor(${keysToUse} / ${summonCost}) = ${draws}.
+         Skills = draws × 5 → ${draws} × 5 = ${expectedSkillsTotal}.
+         Points = summon points + upgrade points = ${formatInt(
+           sumPoints
+         )} + ${formatInt(sumUpdatePoints)} = ${formatInt(
+          sumPoints + sumUpdatePoints
+        )}.`;
+
+        document.getElementById("results").style.display = "grid";
+      }
+
+      document.getElementById("calcBtn").addEventListener("click", calculate);
+      [
+        "keysToUse",
+        "summonCost",
+        "chanceCommon",
+        "chanceRare",
+        "chanceEpic",
+        "chanceLegendary",
+        "chanceUltimate",
+        "chanceMythic",
+      ].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("input", calculate);
+      });
+
+      calculate();
+    </script>
+  </body>
+</html>
